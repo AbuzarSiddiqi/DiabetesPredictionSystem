@@ -8651,125 +8651,137 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // Function to generate and download PDF report
     function generateReport(prediction) {
-      // Format the current date
-      const today = new Date();
-      const dateStr = today.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      });
-      
-      
-      // Generate a unique report ID
-      const reportID = "HCMC-" + today.getTime().toString().substr(-8);
-      
-      // Populate the report template with data
-      document.getElementById("reportDate").textContent = dateStr;
-      document.getElementById("reportPatientName").textContent = prediction.values.PatientName;
-      document.getElementById("reportID").textContent = reportID;
-      document.getElementById("assessmentDate").textContent = dateStr;
-      
-      document.getElementById("reportResult").innerHTML = prediction.result ?
-        "Based on the assessment, the patient shows <strong style='color: #e74c3c;'>elevated risk factors for diabetes</strong>." :
-        "Based on the assessment, the patient currently shows <strong style='color: #27ae60;'>low risk factors for diabetes</strong>.";
-      
-      // Add risk factors to report
-      let factorsHtml = "";
-      if (prediction.factors.length > 0) {
-        factorsHtml += "<ul>";
-        prediction.factors.forEach(factor => {
-          factorsHtml += `<li><strong>${factor.factor}:</strong> ${factor.description}</li>`;
+        // Format the current date
+        const today = new Date();
+        const dateStr = today.toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
         });
-        factorsHtml += "</ul>";
-      } else {
-        factorsHtml = "<p>No specific risk factors identified based on provided measurements.</p>";
-      }
-      document.getElementById("reportFactors").innerHTML = factorsHtml;
-      
-      // Populate measurements table
-      document.getElementById("reportGlucose").textContent = prediction.values.Glucose;
-      document.getElementById("reportBP").textContent = prediction.values.BloodPressure;
-      document.getElementById("reportBMI").textContent = prediction.values.BMI.toFixed(1);
-      document.getElementById("reportInsulin").textContent = prediction.values.Insulin;
-      
-      // Set status for each measurement
-      document.getElementById("glucoseStatus").textContent = prediction.values.Glucose > 125 ? "HIGH" : "Normal";
-      document.getElementById("glucoseStatus").style.color = prediction.values.Glucose > 125 ? "#e74c3c" : "#27ae60";
-      
-      document.getElementById("bpStatus").textContent = prediction.values.BloodPressure > 130 ? "HIGH" : "Normal";
-      document.getElementById("bpStatus").style.color = prediction.values.BloodPressure > 130 ? "#e74c3c" : "#27ae60";
-      
-      document.getElementById("bmiStatus").textContent = 
-        prediction.values.BMI < 18.5 ? "Underweight" :
-        prediction.values.BMI < 25 ? "Normal" :
-        prediction.values.BMI < 30 ? "Overweight" : "Obese";
-      document.getElementById("bmiStatus").style.color = 
-        prediction.values.BMI < 18.5 ? "#f39c12" :
-        prediction.values.BMI < 25 ? "#27ae60" :
-        prediction.values.BMI < 30 ? "#f39c12" : "#e74c3c";
-      
-      document.getElementById("insulinStatus").textContent = prediction.values.Insulin > 25 ? "HIGH" : "Normal";
-      document.getElementById("insulinStatus").style.color = prediction.values.Insulin > 25 ? "#e74c3c" : "#27ae60";
-      
-      // Add recommendations based on risk factors
-      let recommendations = "<ul>";
-      if (prediction.result) {
-        recommendations += "<li>Schedule an appointment with an endocrinologist for further evaluation.</li>";
-        recommendations += "<li>Consider comprehensive blood work including HbA1c test.</li>";
         
-        if (prediction.values.BMI > 30) {
-          recommendations += "<li>Consult with a nutritionist for a personalized weight management plan.</li>";
+        // Generate a unique report ID
+        const reportID = "HCMC-" + today.getTime().toString().substr(-8);
+        
+        // Populate the report template with data
+        document.getElementById("reportDate").textContent = dateStr;
+        document.getElementById("reportPatientName").textContent = prediction.values.PatientName;
+        document.getElementById("reportID").textContent = reportID;
+        document.getElementById("assessmentDate").textContent = dateStr;
+        
+        document.getElementById("reportResult").innerHTML = prediction.result ?
+          "Based on the assessment, the patient shows <strong style='color: #e74c3c;'>elevated risk factors for diabetes</strong>." :
+          "Based on the assessment, the patient currently shows <strong style='color: #27ae60;'>low risk factors for diabetes</strong>.";
+        
+        // Add risk factors to report (condensed format)
+        let factorsHtml = "";
+        if (prediction.factors.length > 0) {
+          factorsHtml += "<ul style='margin: 5px 0; padding-left: 15px;'>";
+          prediction.factors.forEach(factor => {
+            factorsHtml += `<li style='margin-bottom: 2px;'><strong>${factor.factor}:</strong> ${factor.description}</li>`;
+          });
+          factorsHtml += "</ul>";
+        } else {
+          factorsHtml = "<p style='margin: 5px 0;'>No specific risk factors identified based on provided measurements.</p>";
         }
+        document.getElementById("reportFactors").innerHTML = factorsHtml;
         
-        if (prediction.values.Glucose > 125) {
-          recommendations += "<li>Monitor blood glucose levels regularly using a home glucose meter.</li>";
-        }
+        // Populate measurements table with compact styling
+        document.getElementById("reportGlucose").textContent = prediction.values.Glucose;
+        document.getElementById("reportBP").textContent = prediction.values.BloodPressure;
+        document.getElementById("reportBMI").textContent = prediction.values.BMI.toFixed(1);
+        document.getElementById("reportInsulin").textContent = prediction.values.Insulin;
         
-        recommendations += "<li>Begin a moderate exercise program after consulting with your physician.</li>";
-      } else {
-        recommendations += "<li>Continue regular annual check-ups.</li>";
-        recommendations += "<li>Maintain a balanced diet rich in vegetables, whole grains, and lean proteins.</li>";
-        recommendations += "<li>Engage in regular physical activity (at least 150 minutes of moderate exercise per week).</li>";
+        // Set status for each measurement
+        document.getElementById("glucoseStatus").textContent = prediction.values.Glucose > 125 ? "HIGH" : "Normal";
+        document.getElementById("glucoseStatus").style.color = prediction.values.Glucose > 125 ? "#e74c3c" : "#27ae60";
         
-        if (prediction.values.BMI > 25) {
-          recommendations += "<li>Consider consulting with a nutritionist for weight management strategies.</li>";
-        }
-      }
-      recommendations += "</ul>";
-      document.getElementById("reportRecommendations").innerHTML = recommendations;
-      
-      // Generate PDF
-      setTimeout(() => {
-        const reportElement = document.getElementById("reportTemplate");
-        reportElement.classList.remove("hidden");
+        document.getElementById("bpStatus").textContent = prediction.values.BloodPressure > 130 ? "HIGH" : "Normal";
+        document.getElementById("bpStatus").style.color = prediction.values.BloodPressure > 130 ? "#e74c3c" : "#27ae60";
         
-        const pdf = new jsPDF('p', 'mm', 'a4');
+        document.getElementById("bmiStatus").textContent = 
+          prediction.values.BMI < 18.5 ? "Under" :
+          prediction.values.BMI < 25 ? "Normal" :
+          prediction.values.BMI < 30 ? "Over" : "Obese";
+        document.getElementById("bmiStatus").style.color = 
+          prediction.values.BMI < 18.5 ? "#f39c12" :
+          prediction.values.BMI < 25 ? "#27ae60" :
+          prediction.values.BMI < 30 ? "#f39c12" : "#e74c3c";
         
-        html2canvas(reportElement, {
-          scale: 2,
-          useCORS: true,
-          logging: false
-        }).then(canvas => {
-          const imgData = canvas.toDataURL('image/png');
-          const imgWidth = 210; // A4 width in mm
-          const pageHeight = 297; // A4 height in mm
-          const imgHeight = canvas.height * imgWidth / canvas.width;
-          let heightLeft = imgHeight;
-          let position = 0;
-          
-          pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-          heightLeft -= pageHeight;
-          
-          while (heightLeft >= 0) {
-            position = heightLeft - imgHeight;
-            pdf.addPage();
-            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-            heightLeft -= pageHeight;
+        document.getElementById("insulinStatus").textContent = prediction.values.Insulin > 25 ? "HIGH" : "Normal";
+        document.getElementById("insulinStatus").style.color = prediction.values.Insulin > 25 ? "#e74c3c" : "#27ae60";
+        
+        // Add recommendations in a more compact format
+        let recommendations = "<ul style='margin: 5px 0; padding-left: 15px;'>";
+        if (prediction.result) {
+          recommendations += "<li>Schedule appointment with endocrinologist</li>";
+          recommendations += "<li>Get HbA1c test</li>";
+          if (prediction.values.BMI > 30) {
+            recommendations += "<li>Consult nutritionist for weight management</li>";
           }
+          if (prediction.values.Glucose > 125) {
+            recommendations += "<li>Monitor blood glucose regularly</li>";
+          }
+          recommendations += "<li>Begin moderate exercise program</li>";
+        } else {
+          recommendations += "<li>Continue annual check-ups</li>";
+          recommendations += "<li>Maintain balanced diet</li>";
+          recommendations += "<li>150+ minutes weekly exercise</li>";
+          if (prediction.values.BMI > 25) {
+            recommendations += "<li>Consider nutritionist consultation</li>";
+          }
+        }
+        recommendations += "</ul>";
+        document.getElementById("reportRecommendations").innerHTML = recommendations;
+        
+        // Generate PDF with optimized settings for mobile
+        setTimeout(() => {
+          const reportElement = document.getElementById("reportTemplate");
+          reportElement.classList.remove("hidden");
           
-          pdf.save(`Diabetes_Report_${prediction.values.PatientName.replace(/\s+/g, '_')}_${reportID}.pdf`);
-          reportElement.classList.add("hidden");
-        });
-      }, 500);
-    }
+          const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4',
+            compress: true
+          });
+          
+          html2canvas(reportElement, {
+            scale: 1.5, // Reduced scale for better mobile fit
+            useCORS: true,
+            logging: false,
+            windowWidth: 800, // Fixed width for consistent rendering
+            windowHeight: 1132, // A4 height ratio
+            onclone: function(clonedDoc) {
+              // Adjust clone styling for better PDF fit
+              const clonedReport = clonedDoc.getElementById("reportTemplate");
+              clonedReport.style.padding = "15px";
+              clonedReport.style.fontSize = "12px";
+              
+              // Adjust table styling
+              const tables = clonedReport.getElementsByTagName("table");
+              for (let table of tables) {
+                table.style.fontSize = "11px";
+                table.style.margin = "5px 0";
+              }
+              
+              // Adjust heading sizes
+              const headings = clonedReport.getElementsByTagName("h3");
+              for (let heading of headings) {
+                heading.style.fontSize = "14px";
+                heading.style.margin = "10px 0 5px 0";
+              }
+            }
+          }).then(canvas => {
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            const imgWidth = 210; // A4 width
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            
+            pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, Math.min(imgHeight, 297));
+            pdf.save(`Diabetes_Report_${prediction.values.PatientName.replace(/\s+/g, '_')}_${reportID}.pdf`);
+            reportElement.classList.add("hidden");
+          });
+        }, 500);
+      }
+
+      
   });
