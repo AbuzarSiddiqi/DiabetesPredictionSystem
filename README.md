@@ -1,6 +1,7 @@
 # DiabetesPredictionSystem
 
 The Diabetes Prediction System is a JavaScript-based project designed to predict diabetes risk using a pre-defined dataset. It applies rule-based conditions and logical operations to classify individuals as diabetic or non-diabetic based on input parameters like glucose level, BMI, age, and blood pressure. The system runs entirely on the client-side, ensuring quick and efficient predictions without requiring AI or machine learning models.
+Link- https://abuzarsiddiqi.github.io/DiabetesPredictionSystem/
 
 Key Features:
 	•	JavaScript-Based – Runs in the browser without external dependencies.
